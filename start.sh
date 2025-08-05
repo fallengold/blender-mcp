@@ -10,7 +10,6 @@ export DISPLAY=:99
 
 # 设置环境变量
 export PYTHONPATH="/app/src:$PYTHONPATH"
-
-# 启动 Blender（不会立即退出）
-# blender --background --python /app/startup.py
-blender --python /app/startup.py
+# 使用 --addons 显式启用插件
+blender --background \
+        --addons BlenderHTTP \

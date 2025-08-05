@@ -12,10 +12,11 @@ RUN apt-get update && apt-get install -y \
 RUN pip3 install fastmcp aiohttp requests pillow
 
 # 复制代码
-COPY src/ /app/src/
-COPY addon.py /app/addon.py
+# COPY addon_http.py /app/addon_http.py
+COPY BlenderHTTP.py /usr/share/blender/scripts/addons/BlenderHTTP.py
 COPY startup.py /app/startup.py
 COPY start.sh /app/start.sh
+COPY render_scene.py /app/render_scene.py
 
 WORKDIR /app
 RUN chmod +x start.sh

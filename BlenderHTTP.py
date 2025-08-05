@@ -15,7 +15,7 @@ import uuid
 
 
 bl_info = {
-    'name': 'Blender HTTP',
+    'name': 'BlenderHTTP',
     'author': 'BlenderHttp',
     'version': (1, 0),
     'blender': (3, 0, 0),
@@ -280,16 +280,82 @@ def render_settings_override(**settings):
                 setattr(scene.render, key, original_value)
 
 
+# def register():
+#     bpy.types.Scene.blenderhttp_port = IntProperty(
+#         name='Port', description='Port for the BlenderHttp server',
+#         default=9876, min=1024, max=65535)
+#     bpy.types.Scene.blenderhttp_server_running = BoolProperty(
+#         name='Server Running', default=False)
+#     bpy.utils.register_class(BLENDERHTTP_PT_Panel)
+#     bpy.utils.register_class(BLENDERHTTP_OT_StartServer)
+#     bpy.utils.register_class(BLENDERHTTP_OT_StopServer)
+
+#     # ========== 新增：自动启动服务器 ==========
+#     # 检查是否是后台模式
+#     if bpy.app.background:
+#         print("🟢 BlenderHTTP: 后台模式，自动启动服务器...")
+#         scene = bpy.context.scene
+#         scene.blenderhttp_port = 9876  # 强制设置端口
+#         server_address = ('localhost', scene.blenderhttp_port)
+#         bpy.types.blenderhttp_server = ServerManager(
+#             http.server.HTTPServer(server_address, BlenderHttpServer))
+#         bpy.types.blenderhttp_server.start()
+#         scene.blenderhttp_server_running = True
+#         print(f"🌐 BlenderHTTP 服务器已启动：http://localhost:9876")
+#     # ========================================
+
 def register():
     bpy.types.Scene.blenderhttp_port = IntProperty(
         name='Port', description='Port for the BlenderHttp server',
         default=9876, min=1024, max=65535)
     bpy.types.Scene.blenderhttp_server_running = BoolProperty(
         name='Server Running', default=False)
-
     bpy.utils.register_class(BLENDERHTTP_PT_Panel)
     bpy.utils.register_class(BLENDERHTTP_OT_StartServer)
     bpy.utils.register_class(BLENDERHTTP_OT_StopServer)
+
+    # ========== 修复：延迟启动服务器 + 防止退出 ==========
+    if bpy.app.background:
+        print("🟢 BlenderHTTP: 后台模式，准备启动服务器...")
+        # 注册一个延迟任务来启动服务器
+        bpy.app.timers.register(start_server_later, first_interval=1.0)
+        # 关键：注册一个“心跳”定时器，防止 Blender 退出
+        bpy.app.timers.register(keep_alive, persistent=True)
+
+
+def keep_alive():
+    """心跳函数：防止 Blender 退出"""
+    # 返回一个正数，表示下次调用的延迟（秒）
+    # 这个函数会一直被调用，从而阻止 Blender 退出
+    return 1.0  # 每秒执行一次
+
+
+def start_server_later():
+    """延迟启动服务器，确保上下文可用"""
+    if not bpy.data.scenes:
+        print("⚠️ 无场景，稍后重试...")
+        return 1.0  # 返回延迟，表示稍后重试
+
+    # 获取或创建 scene
+    scene = bpy.context.scene or bpy.data.scenes[0]
+
+    # 避免重复启动
+    if hasattr(bpy.types, 'blenderhttp_server') and bpy.types.blenderhttp_server:
+        print("🌐 服务器已运行")
+        return None
+
+    try:
+        server_address = ('localhost', scene.blenderhttp_port)
+        bpy.types.blenderhttp_server = ServerManager(
+            http.server.HTTPServer(server_address, BlenderHttpServer))
+        bpy.types.blenderhttp_server.start()
+        scene.blenderhttp_server_running = True
+        print(f"✅ BlenderHTTP 服务器已启动：http://localhost:9876")
+    except Exception as e:
+        print(f"❌ 启动服务器失败: {e}")
+        return 1.0  # 重试
+
+    return None  # 成功启动，不再调用
 
 
 def unregister():
