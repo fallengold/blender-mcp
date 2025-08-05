@@ -959,7 +959,6 @@ def asset_creation_strategy() -> str:
 
 def main():
     """Run the MCP server"""
-
     mcp.run(transport="sse")
 
 if __name__ == "__main__":

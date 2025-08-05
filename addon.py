@@ -123,6 +123,8 @@ class BlenderMCPServer:
         """Handle connected client"""
         logger.info("Client handler started")
         client.settimeout(None)  # No timeout
+        # client.settimeout(5.0)  # Set a timeout for receiving data
+
         buffer = b''
         
         try:
@@ -133,12 +135,14 @@ class BlenderMCPServer:
                     if not data:
                         logger.info("Client disconnected")
                         break
+                    logger.info(f"Accepted {len((data))} bytes from client")
                     
                     buffer += data
                     try:
                         # Try to parse command
                         command = json.loads(buffer.decode('utf-8'))
                         buffer = b''
+                        logger.info(f"Parsed command: {command}" )
                         
                         # Execute command in Blender's main thread
                         def execute_wrapper():

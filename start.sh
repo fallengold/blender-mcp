@@ -12,4 +12,5 @@ export DISPLAY=:99
 export PYTHONPATH="/app/src:$PYTHONPATH"
 
 # 启动 Blender（不会立即退出）
-blender --background --python /app/startup.py
+# blender --background --python /app/startup.py
+blender --python /app/startup.py

@@ -1,0 +1,1 @@
+docker build -t blender_playground:v1 -f dockerfile.base .
