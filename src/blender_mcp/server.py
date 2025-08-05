@@ -203,9 +203,16 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[Dict[str, Any]]:
         logger.info("BlenderMCP server shut down")
 
 # Create the MCP server with lifespan support
+PORT = 8080
+HOST = "0.0.0.0"
+settings = {
+    "host": HOST,
+    "port": PORT,
+}
 mcp = FastMCP(
     "BlenderMCP",
-    lifespan=server_lifespan
+    lifespan=server_lifespan,
+    **settings
 )
 
 # Resource endpoints
@@ -952,7 +959,8 @@ def asset_creation_strategy() -> str:
 
 def main():
     """Run the MCP server"""
-    mcp.run()
+
+    mcp.run(transport="sse")
 
 if __name__ == "__main__":
     main()
