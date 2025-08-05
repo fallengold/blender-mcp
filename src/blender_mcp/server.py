@@ -11,12 +11,24 @@ from typing import AsyncIterator, Dict, Any, List
 import os
 from pathlib import Path
 import base64
+import sys
 from urllib.parse import urlparse
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, 
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# 配置日志强制输出到 stdout
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout,  # 强制输出到 stdout
+    force=True  # 覆盖任何现有的日志配置
+)
+
 logger = logging.getLogger("BlenderMCPServer")
+
+# 确保所有日志都输出到 stdout
+for handler in logging.root.handlers:
+    handler.setStream(sys.stdout)
+
 
 @dataclass
 class BlenderConnection:
